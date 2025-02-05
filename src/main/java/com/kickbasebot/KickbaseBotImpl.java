@@ -1,23 +1,25 @@
 package com.kickbasebot;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.kickbasebot.data.League;
-import com.kickbasebot.data.Offer;
-import com.kickbasebot.data.Player;
+import com.kickbasebot.data.managers.Profile;
+import com.kickbasebot.data.market.League;
+import com.kickbasebot.data.market.Offer;
+import com.kickbasebot.data.market.Player;
 import com.kickbasebot.data.Ranking;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.text.NumberFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
 
-    private static final double BID_PERCENTAGE = 0.96;  // Kon
+    private static final double BID_PERCENTAGE = 0.966;
 
     private static KickbaseBotImpl instance;
 
+    private Profile profile;
+    private String userId;
     private League league;
     private final List<Player> playersOnTM = new ArrayList<>();
 
@@ -42,6 +44,10 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
 
         JsonNode responseJson = sendPostRequest(loginUrl, requestBody);
         this.token = responseJson.get("tkn").asText();
+
+        JsonNode userNode = responseJson.get("u");
+        this.userId = userNode.get("id").asText();
+
         System.out.println("\nLogin erfolgreich!");
         return token;
     }
@@ -149,6 +155,68 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
             }
         }
         return leaguePoints;
+    }
+
+    @Override
+    public Profile getProfile() throws IOException, InterruptedException {
+        String profileUrl = BASE_URL_LEAGUES + league.getId() + "/managers/" + userId + "/dashboard";
+        JsonNode profileData = sendGetRequest(profileUrl);
+
+        if (profileData == null) {
+            throw new IOException("Fehler beim Abrufen der Profildaten.");
+        }
+
+        List<Integer> pastMatchdayPoints = new ArrayList<>();
+        if (profileData.has("ph") && profileData.get("ph").isArray()) {
+            for (JsonNode point : profileData.get("ph")) {
+                pastMatchdayPoints.add(point.isNull() ? 0 : point.asInt());
+            }
+        }
+
+        this.profile = new Profile(
+                profileData.get("u").asText(),             // Benutzer-ID
+                profileData.get("unm").asText(),           // Benutzername
+                profileData.get("st").asInt(),             // Status
+                profileData.get("ap").asInt(),             // Durchschnittliche Punkte
+                profileData.get("tp").asInt(),             // Gesamtpunkte
+                profileData.get("mdw").asInt(),            // Anzahl der gewonnenen Spieltage
+                profileData.get("pl").asInt(),             // Platzierung in der Liga
+                profileData.get("tv").asDouble(),          // Teamwert
+                profileData.get("prft").asInt(),           // Gesamtprofit
+                profileData.get("lnm").asText(),           // Ligabezeichnung
+                profileData.get("li").asText(),            // Liga-ID
+                profileData.get("adm").asBoolean(),        // Admin-Status
+                profileData.get("t").asInt(),              // Anzahl der Transfers
+                pastMatchdayPoints,                        // Punkte aus den letzten Spieltagen
+                profileData.get("uim").asText(),           // User-Profilbild
+                profileData.get("lim").asText()            // Liga-Bild
+        );
+
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.GERMANY);
+        String formattedTeamValue = numberFormat.format(profile.getTeamValue());
+        String formattedProfit = numberFormat.format(profile.getProfit());
+
+        String lastMatchdayPoints = pastMatchdayPoints.stream()
+                .limit(5)
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        System.out.println("\nProfil erfolgreich geladen für: " + profile.getUsername());
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
+        System.out.printf("| %-12s | %-16s | %-20s | %-10s | %-12s | %-10s | %-10s |\n",
+                "Wins", "Total Pts", "Last 5 Total Pts", "Ø Pts", "Team Value", "Profit", "Transfers");
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
+        System.out.printf("| %-12d | %-16d | %-20s | %-10d | %-12s | %-10s | %-10d |\n",
+                profile.getMatchdayWins(),
+                profile.getTotalPoints(),
+                lastMatchdayPoints,
+                profile.getAveragePoints(),
+                formattedTeamValue,
+                formattedProfit,
+                profile.getTransfers());
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
+
+        return profile;
     }
 
     @Override

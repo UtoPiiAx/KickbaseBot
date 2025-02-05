@@ -1,7 +1,8 @@
 package com.kickbasebot;
 
-import com.kickbasebot.data.League;
-import com.kickbasebot.data.Player;
+import com.kickbasebot.data.managers.Profile;
+import com.kickbasebot.data.market.League;
+import com.kickbasebot.data.market.Player;
 import com.kickbasebot.data.Ranking;
 
 import java.io.IOException;
@@ -41,6 +42,14 @@ public interface KickbaseBot {
      * @throws InterruptedException Wenn der Vorgang unterbrochen wird.
      */
     public Ranking fetchAndPopulateRanking() throws IOException, InterruptedException;
+
+    /**
+     * Ruft das Profil des Benutzers ab.
+     * @return Das Profil des Benutzers als {@link Profile}.
+     * @throws IOException Wenn ein Problem beim Abrufen des Profils auftritt.
+     * @throws InterruptedException Wenn der Vorgang unterbrochen wird.
+     */
+    public Profile getProfile() throws IOException, InterruptedException;
 
     /**
      * Ruft eine Liste von Spielern ab, die auf dem Transfermarkt sind.

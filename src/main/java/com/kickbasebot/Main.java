@@ -30,6 +30,7 @@ public class Main {
             bot.login(email, password);
             bot.getLeague();
             bot.fetchAndPopulateRanking();
+            bot.getProfile();
             bot.getPlayers();
 
             System.out.print("Möchten Sie Gebote setzen? (ja/nein): ");
@@ -38,9 +39,9 @@ public class Main {
 
             if (response.equals("ja")) {
                 bot.placeBids();
-                System.out.println("Gebote wurden gesetzt.");
+                System.out.println("\nGebote wurden gesetzt.");
             } else {
-                System.out.println("Keine Gebote gesetzt.");
+                System.out.println("\nKeine Gebote gesetzt. Bis zum nächsten Mal!");
             }
 
         } catch (Exception e) {

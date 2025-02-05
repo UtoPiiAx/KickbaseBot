@@ -18,6 +18,12 @@ public class HttpClientHelper {
 
     protected String token;
 
+    protected JsonNode sendPostRequest(String url, Object requestBody) throws IOException, InterruptedException {
+        HttpRequest request = buildPostRequest(url, requestBody);
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return handleResponse(response);
+    }
+
     protected HttpRequest buildPostRequest(String url, Object requestBody) throws IOException {
         return HttpRequest.newBuilder()
                 .uri(URI.create(url))
@@ -27,8 +33,8 @@ public class HttpClientHelper {
                 .build();
     }
 
-    protected JsonNode sendPostRequest(String url, Object requestBody) throws IOException, InterruptedException {
-        HttpRequest request = buildPostRequest(url, requestBody);
+    protected JsonNode sendGetRequest(String url) throws IOException, InterruptedException {
+        HttpRequest request = buildGetRequest(url);
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         return handleResponse(response);
     }
@@ -40,12 +46,6 @@ public class HttpClientHelper {
                 .header("Authorization", "Bearer " + token)
                 .GET()
                 .build();
-    }
-
-    protected JsonNode sendGetRequest(String url) throws IOException, InterruptedException {
-        HttpRequest request = buildGetRequest(url);
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return handleResponse(response);
     }
 
     protected JsonNode handleResponse(HttpResponse<String> response) throws IOException {

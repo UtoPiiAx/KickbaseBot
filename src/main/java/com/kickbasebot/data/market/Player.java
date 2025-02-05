@@ -1,4 +1,4 @@
-package com.kickbasebot.data;
+package com.kickbasebot.data.market;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
