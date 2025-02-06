@@ -13,14 +13,14 @@ public class Main {
         if (console != null) {
             System.out.print("E-Mail: ");
             email = console.readLine();
-            System.out.print("Passwort: ");
+            System.out.print("Password: ");
             char[] passwordArray = console.readPassword();
             password = new String(passwordArray);
         } else {
             Scanner scanner = new Scanner(System.in);
             System.out.print("E-Mail: ");
             email = scanner.nextLine();
-            System.out.print("Passwort: ");
+            System.out.print("Password: ");
             password = readPasswordWithAsterisks(scanner);
         }
 
@@ -32,16 +32,17 @@ public class Main {
             bot.fetchAndPopulateRanking();
             bot.getProfile();
             bot.getPlayers();
+            bot.getPlayersFromMarket();
 
-            System.out.print("Möchten Sie Gebote setzen? (ja/nein): ");
+            System.out.print("Would you like to place bids? (yes/no): ");
             Scanner scanner = new Scanner(System.in);
             String response = scanner.nextLine().trim().toLowerCase();
 
-            if (response.equals("ja")) {
+            if (response.equals("yes")) {
                 bot.placeBids();
-                System.out.println("\nGebote wurden gesetzt.");
+                System.out.println("\nBids have been placed.");
             } else {
-                System.out.println("\nKeine Gebote gesetzt. Bis zum nächsten Mal!");
+                System.out.println("\nNo bids placed. See you next time!");
             }
 
         } catch (Exception e) {

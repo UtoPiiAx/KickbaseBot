@@ -1,13 +1,15 @@
 package com.kickbasebot;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.kickbasebot.data.Ranking;
 import com.kickbasebot.data.managers.Profile;
 import com.kickbasebot.data.market.League;
 import com.kickbasebot.data.market.Offer;
-import com.kickbasebot.data.market.Player;
-import com.kickbasebot.data.Ranking;
+import com.kickbasebot.data.market.PlayerFromMarket;
+import com.kickbasebot.data.me.Player;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,12 +20,16 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
 
     private static KickbaseBotImpl instance;
 
-    private Profile profile;
     private String userId;
+    private Profile profile;
     private League league;
-    private final List<Player> playersOnTM = new ArrayList<>();
+    private final List<Player> players = new ArrayList<>();
+    private final List<PlayerFromMarket> playersOnTM = new ArrayList<>();
 
-    private KickbaseBotImpl() {}
+    NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.GERMANY);
+
+    private KickbaseBotImpl() {
+    }
 
     public static synchronized KickbaseBotImpl getInstance() {
         if (instance == null) {
@@ -48,13 +54,14 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
         JsonNode userNode = responseJson.get("u");
         this.userId = userNode.get("id").asText();
 
-        System.out.println("\nLogin erfolgreich!");
+        System.out.println("\nLogin successful! User ID: " + userId + "\n");
         return token;
     }
 
     @Override
     public League getLeague() throws IOException, InterruptedException {
         String leaguesUrl = BASE_URL_LEAGUES + "selection";
+
         JsonNode leagues = sendGetRequest(leaguesUrl);
         JsonNode leagueArray = leagues.get("it");
 
@@ -79,18 +86,17 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
                     leagueData.get("cpim").asText()            // Profilbild-URL
             );
             this.league = league;
-            System.out.println("\nLiga erfolgreich abgerufen: " + league.getName() + " (ID: " + league.getId() + ") \n");
+            System.out.println("\nLeague successfully retrieved: " + league.getName() + " (ID: " + league.getId() + ") \n");
             return league;
         }
-
-        throw new IllegalStateException("Keine Ligen gefunden.");
+        throw new IllegalStateException("No leagues found.");
     }
 
     @Override
     public Ranking fetchAndPopulateRanking() throws IOException, InterruptedException {
         String rankingUrl = BASE_URL_LEAGUES + league.getId() + "/ranking?dayNumber=999";
-        JsonNode rankingData = sendGetRequest(rankingUrl);
 
+        JsonNode rankingData = sendGetRequest(rankingUrl);
         JsonNode dataNode = rankingData.get("us");
 
         if (dataNode != null && dataNode.isArray()) {
@@ -137,12 +143,12 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
             System.out.println("Leaderboard:");
             int position = 1;
             for (Ranking.User user : users) {
-                System.out.println("Platz " + position + ": " + user.getName() + " - " + user.getScore() + " Punkte");
+                System.out.println("Rank " + position + ": " + user.getName() + " - " + user.getScore() + " points");
                 position++;
             }
             return ranking;
         } else {
-            System.out.println("Keine Ranking-Daten gefunden!");
+            System.out.println("No ranking data found!");
             return null;
         }
     }
@@ -160,11 +166,8 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
     @Override
     public Profile getProfile() throws IOException, InterruptedException {
         String profileUrl = BASE_URL_LEAGUES + league.getId() + "/managers/" + userId + "/dashboard";
-        JsonNode profileData = sendGetRequest(profileUrl);
 
-        if (profileData == null) {
-            throw new IOException("Fehler beim Abrufen der Profildaten.");
-        }
+        JsonNode profileData = sendGetRequest(profileUrl);
 
         List<Integer> pastMatchdayPoints = new ArrayList<>();
         if (profileData.has("ph") && profileData.get("ph").isArray()) {
@@ -192,16 +195,15 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
                 profileData.get("lim").asText()            // Liga-Bild
         );
 
-        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.GERMANY);
         String formattedTeamValue = numberFormat.format(profile.getTeamValue());
         String formattedProfit = numberFormat.format(profile.getProfit());
 
         String lastMatchdayPoints = pastMatchdayPoints.stream()
                 .limit(5)
                 .map(String::valueOf)
-                .collect(Collectors.joining(","));
+                .collect(Collectors.joining("|"));
 
-        System.out.println("\nProfil erfolgreich geladen für: " + profile.getUsername());
+        System.out.println("\nProfile successfully loaded for: " + profile.getUsername());
         System.out.println("----------------------------------------------------------------------------------------------------------------");
         System.out.printf("| %-12s | %-16s | %-20s | %-10s | %-12s | %-10s | %-10s |\n",
                 "Wins", "Total Pts", "Last 5 Total Pts", "Ø Pts", "Team Value", "Profit", "Transfers");
@@ -220,10 +222,9 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
     }
 
     @Override
-    public List<Player> getPlayers() throws IOException, InterruptedException {
-        if (league.getId() == null) throw new IllegalStateException("League ID nicht gesetzt.");
-
+    public List<PlayerFromMarket> getPlayersFromMarket() throws IOException, InterruptedException {
         String playersUrl = BASE_URL_LEAGUES + league.getId() + "/market";
+
         JsonNode playersData = sendGetRequest(playersUrl);
         JsonNode playerArray = playersData.get("it");
 
@@ -246,7 +247,7 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
                     }
                 }
 
-                Player player = new Player(
+                PlayerFromMarket playerFromMarket = new PlayerFromMarket(
                         playerData.has("i") ? playerData.get("i").asText() : "",              // ID
                         playerData.has("fn") ? playerData.get("fn").asText() : "",            // Vorname
                         playerData.has("n") ? playerData.get("n").asText() : "",              // Nachname
@@ -268,33 +269,140 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
                         playerData.has("pim") ? playerData.get("pim").asText() : "",          // Spielerbild
                         offers                                                                          // Liste von Angeboten
                 );
-                playersOnTM.add(player);
+                playersOnTM.add(playerFromMarket);
             }
         }
 
-        System.out.println("\nEs wurden " + playersOnTM.size() + " Spielern auf dem Transfermarkt gefunden.\n");
+        System.out.println("\nFound " + playersOnTM.size() + " players on the transfer market.\n");
         return playersOnTM;
     }
 
     @Override
     public void placeBids() throws IOException, InterruptedException {
-        playersOnTM.sort(Comparator.comparingInt(Player::getRemainingSeconds));
+        playersOnTM.sort(Comparator.comparingInt(PlayerFromMarket::getRemainingSeconds));
 
-        for (Player playerToBid : playersOnTM) {
-            double bidAmount = playerToBid.getMarketValue() * BID_PERCENTAGE;
-            double profit= playerToBid.getMarketValue() - bidAmount;
+        for (PlayerFromMarket playerFromMarketToBid : playersOnTM) {
+            double bidAmount = playerFromMarketToBid.getMarketValue() * BID_PERCENTAGE;
+            double profit = playerFromMarketToBid.getMarketValue() - bidAmount;
 
-            String bidUrl = BASE_URL + "/leagues/" + league.getId() + "/market/" + playerToBid.getId() + "/offers/";
+            String bidUrl = BASE_URL + "/leagues/" + league.getId() + "/market/" + playerFromMarketToBid.getId() + "/offers/";
 
             Map<String, Object> requestBody = Map.of("price", bidAmount);
 
             sendPostRequest(bidUrl, requestBody);
 
-            System.out.println("\nGebot für " + playerToBid.getFirstName() + " " + playerToBid.getLastName() +
-                    " in Höhe von " + formatNumber(bidAmount) + " abgegeben." +
-                    "\nAktueller Marktwert: " + formatNumber(playerToBid.getMarketValue()) +
-                    "\nTransfergewinn bei sofortigem Verkauf: +" + formatNumber(profit) + "\n");
+            System.out.println("\nBid placed for " + playerFromMarketToBid.getFirstName() + " " + playerFromMarketToBid.getLastName() +
+                    " in the amount of " + formatNumber(bidAmount) + "." +
+                    "\nCurrent market value: " + formatNumber(playerFromMarketToBid.getMarketValue()) +
+                    "\nPotential profit if sold immediately: +" + formatNumber(profit) + "\n");
         }
+    }
+
+    @Override
+    public void getPlayers() throws IOException, InterruptedException {
+        String playersUrl = BASE_URL_LEAGUES + league.getId() + "/squad/";
+
+        JsonNode playersData = sendGetRequest(playersUrl);
+        JsonNode playerArray = playersData.get("it");
+
+        List<Player> sortedPlayers = new ArrayList<>(); // Neue Liste für die sortierten Spieler
+
+        if (playerArray != null && playerArray.isArray()) {
+            for (JsonNode playerData : playerArray) {
+                Player player = new Player(
+                        playerData.has("mvgl") ? playerData.get("mvgl").asInt() : 0,            // Market value in the league
+                        playerData.has("i") ? playerData.get("i").asText() : "",               // Player ID
+                        playerData.has("n") ? playerData.get("n").asText() : "Unknown",        // Player name
+                        playerData.has("lo") ? playerData.get("lo").asInt() : 0,               // Loan status
+                        playerData.has("lst") ? playerData.get("lst").asInt() : 0,              // Last transfer status
+                        playerData.has("st") ? playerData.get("st").asInt() : 0,               // Status
+                        playerData.has("mdst") ? playerData.get("mdst").asInt() : 0,            // Matchday status
+                        playerData.has("pos") ? playerData.get("pos").asInt() : 0,              // Position in the rank
+                        playerData.has("mv") ? playerData.get("mv").asLong() : 0L,              // Market value
+                        playerData.has("mvt") ? playerData.get("mvt").asInt() : 0,              // Market value type
+                        playerData.has("p") ? playerData.get("p").asInt() : 0,                  // Points
+                        playerData.has("ap") ? playerData.get("ap").asInt() : 0,                // Average points
+                        playerData.has("iotm") && playerData.get("iotm").asBoolean(),           // Is in the team of the moment
+                        playerData.has("ofc") ? playerData.get("ofc").asInt() : 0,              // Offensive contribution
+                        playerData.has("tid") ? playerData.get("tid").asText() : "",             // Team ID
+                        playerData.has("sdmvt") ? playerData.get("sdmvt").asLong() : 0L,         // Market value change in the last 7 days
+                        playerData.has("tfhmvt") ? playerData.get("tfhmvt").asLong() : 0L,       // Market value change in the last day
+                        playerData.has("pim") ? playerData.get("pim").asText() : ""              // Player image URL
+                );
+
+                String percentageChangeLastDay = calculateMarketValueChangePercentage(player.getMarketValue(), player.getMarketValueChangeInLastDay());
+                player.setPercentageChangeLastDay(Double.parseDouble(percentageChangeLastDay.replace("%", "")));
+                players.add(player);
+            }
+
+            sortedPlayers = players.stream()
+                    .sorted((p1, p2) -> Double.compare(p2.getPercentageChangeLastDay(), p1.getPercentageChangeLastDay()))
+                    .collect(Collectors.toList());
+        }
+
+        for (Player player : sortedPlayers) {
+            String position = getPositionName(player.getPositionInRank());
+
+            String formattedMarketValue = numberFormat.format(player.getMarketValue());
+            String formattedChangeLastWeek = formatMarketValueChange(player.getMarketValueChangeInLastWeek(), player.getMarketValueType());
+            String formattedChangeLastDay = formatMarketValueChange(player.getMarketValueChangeInLastDay(), player.getMarketValueType());
+            String percentageChangeLastDay = calculateMarketValueChangePercentage(player.getMarketValue(), player.getMarketValueChangeInLastDay());
+
+            System.out.println("\n------------------------");
+            System.out.println("Player: " + player.getPlayerName());
+            System.out.println("Position: " + position);
+            System.out.println("Market Value: " + formattedMarketValue + " EUR");
+            System.out.println("Total Points: " + player.getPoints());
+            System.out.println("Average Points: " + player.getAveragePoints());
+            System.out.println("Market Value Change (Last Week): " + formattedChangeLastWeek);
+            System.out.println("Market Value Change (Last Day): " + formattedChangeLastDay);
+            System.out.println("Percentage Change (Last Day): " + percentageChangeLastDay);
+            System.out.println("------------------------");
+        }
+
+        System.out.println("\nA total of " + sortedPlayers.size() + " players were found in your squad.");
+    }
+
+    private String getPositionName(int positionInRank) {
+        switch (positionInRank) {
+            case 1:
+                return "Goalkeeper";
+            case 2:
+                return "Defender";
+            case 3:
+                return "Midfielder";
+            case 4:
+                return "Forward";
+            default:
+                return "Unknown";
+        }
+    }
+
+    private String formatMarketValueChange(long change, int mvt) {
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.GERMANY);
+        String formattedChange = numberFormat.format(change);
+
+        if (mvt == 1) {
+            return "+ " + formattedChange + " EUR";
+        } else if (mvt == 0) {
+            return "- " + formattedChange + " EUR";
+        }
+        return formattedChange + " EUR";
+    }
+
+    private String calculateMarketValueChangePercentage(long currentMarketValue, long marketValueChange) {
+        if (currentMarketValue == 0) {
+            return "No market value available";
+        }
+        double percentageChange = ((double) marketValueChange / currentMarketValue) * 100;
+        DecimalFormat df = new DecimalFormat("#.##");
+        String percentageString = df.format(percentageChange) + "%";
+
+        if (percentageString.contains(",")) {
+            percentageString = percentageString.replace(",", ".");
+        }
+
+        return percentageString;
     }
 
     @Override
