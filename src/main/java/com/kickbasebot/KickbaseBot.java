@@ -2,84 +2,81 @@ package com.kickbasebot;
 
 import com.kickbasebot.data.managers.Profile;
 import com.kickbasebot.data.market.League;
-import com.kickbasebot.data.market.PlayerFromMarket;
+import com.kickbasebot.data.market.PlayerOnMarket;
+import com.kickbasebot.data.me.PlayerOnSquad;
 import com.kickbasebot.data.Ranking;
 
 import java.io.IOException;
 import java.util.List;
 
 /**
- * Interface für den KickbaseBotImpl, der mit der Kickbase API interagiert.
- * Es definiert Methoden für die Authentifizierung, das Abrufen von Spieldaten und das Platzieren von Geboten.
+ * Interface for the KickbaseBotImpl, which interacts with the Kickbase API.
+ * It defines methods for authentication, retrieving game data, and placing bids.
  */
 public interface KickbaseBot {
 
     /**
-     * Authentifiziert den Benutzer mit der angegebenen E-Mail-Adresse und dem Passwort.
+     * Authenticates the user with the given email address and password.
      *
-     * @param email Die E-Mail-Adresse des Benutzers.
-     * @param password Das Passwort des Benutzers.
-     * @return Ein Token, der für weitere Anfragen benötigt wird.
-     * @throws IOException Wenn ein Problem beim Zugriff auf die Kickbase API auftritt.
-     * @throws InterruptedException Wenn der Vorgang unterbrochen wird.
+     * @param email The user's email address.
+     * @param password The user's password.
+     * @return A token required for further requests.
+     * @throws IOException If there is an issue accessing the Kickbase API.
+     * @throws InterruptedException If the process is interrupted.
      */
     String login(String email, String password) throws IOException, InterruptedException;
 
     /**
-     * Ruft die Liga ab, in der der Bot aktiv ist.
+     * Retrieves the league in which the bot is active.
      *
-     * @return Die Liga als {@link League}.
-     * @throws IOException Wenn ein Problem beim Abrufen der Liga-ID auftritt.
-     * @throws InterruptedException Wenn der Vorgang unterbrochen wird.
+     * @return The league as {@link League}.
+     * @throws IOException If there is an issue retrieving the league ID.
+     * @throws InterruptedException If the process is interrupted.
      */
     League getLeague() throws IOException, InterruptedException;
 
     /**
-     * Ruft die Rangliste der Liga ab.
+     * Retrieves the league ranking.
      *
-     * @return Die Rangliste als {@link Ranking}.
-     * @throws IOException Wenn ein Problem beim Abrufen der Rangliste auftritt.
-     * @throws InterruptedException Wenn der Vorgang unterbrochen wird.
+     * @return The ranking as {@link Ranking}.
+     * @throws IOException If there is an issue retrieving the ranking.
+     * @throws InterruptedException If the process is interrupted.
      */
-    public Ranking fetchAndPopulateRanking() throws IOException, InterruptedException;
+    Ranking fetchAndPopulateRanking() throws IOException, InterruptedException;
 
     /**
-     * Ruft das Profil des Benutzers ab.
-     * @return Das Profil des Benutzers als {@link Profile}.
-     * @throws IOException Wenn ein Problem beim Abrufen des Profils auftritt.
-     * @throws InterruptedException Wenn der Vorgang unterbrochen wird.
+     * Retrieves the user's profile.
+     *
+     * @return The user's profile as {@link Profile}.
+     * @throws IOException If there is an issue retrieving the profile.
+     * @throws InterruptedException If the process is interrupted.
      */
-    public Profile getProfile() throws IOException, InterruptedException;
+    Profile getProfile() throws IOException, InterruptedException;
 
     /**
-     * Ruft eine Liste von Spielern ab, die auf dem Transfermarkt sind.
+     * Retrieves the user's player information.
      *
-     * @return Eine Liste der Spieler als {@link List<  PlayerFromMarket  >}.
-     * @throws IOException Wenn ein Problem beim Abrufen der Spielerinformationen auftritt.
-     * @throws InterruptedException Wenn der Vorgang unterbrochen wird.
+     * @return A list of players on the squad as {@link List<PlayerOnSquad>}.
+     * @throws IOException If there is an issue retrieving the player information.
+     * @throws InterruptedException If the process is interrupted.
      */
-    List<PlayerFromMarket> getPlayersFromMarket() throws IOException, InterruptedException;
+    List<PlayerOnSquad> getPlayers() throws IOException, InterruptedException;
 
     /**
-     * Platziert Gebote auf ablaufende Spieler im Kickbase-System.
+     * Retrieves a list of players available on the transfer market.
      *
-     * @throws IOException Wenn ein Problem beim Platzieren der Gebote auftritt.
-     * @throws InterruptedException Wenn der Vorgang unterbrochen wird.
+     * @return A list of players as {@link List<PlayerOnMarket>}.
+     * @throws IOException If there is an issue retrieving the market players.
+     * @throws InterruptedException If the process is interrupted.
+     */
+    List<PlayerOnMarket> getPlayersFromMarket() throws IOException, InterruptedException;
+
+    /**
+     * Places bids on expiring players in the Kickbase system.
+     *
+     * @throws IOException If there is an issue placing bids.
+     * @throws InterruptedException If the process is interrupted.
      */
     void placeBids() throws IOException, InterruptedException;
 
-    /**
-     * Ruft die eigenen Spielerinformationen ab.
-     * @throws IOException Wenn ein Problem beim Abrufen der Spielerinformationen auftritt.
-     * @throws InterruptedException Wenn der Vorgang unterbrochen wird.
-     */
-    void getPlayers() throws IOException, InterruptedException;
-
-        /**
-         * Formatiert eine Zahl (z.B. für Preisangaben) in eine benutzerfreundliche Darstellung.
-         *
-         * @param number Die Zahl, die formatiert werden soll.
-         * @return Die formatierte Zahl als {@link String}.
-         */
-    String formatNumber(double number);
 }

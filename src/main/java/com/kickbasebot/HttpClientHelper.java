@@ -52,6 +52,6 @@ public class HttpClientHelper {
         if (response.statusCode() == 200) {
             return objectMapper.readTree(response.body());
         }
-        throw new RuntimeException("Fehlerhafte Antwort: " + response.statusCode() + " - " + response.body());
+        throw new RuntimeException("Status Code: " + response.statusCode());
     }
 }

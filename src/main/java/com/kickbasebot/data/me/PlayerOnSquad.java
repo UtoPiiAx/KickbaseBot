@@ -1,6 +1,6 @@
 package com.kickbasebot.data.me;
 
-public class Player {
+public class PlayerOnSquad {
 
     private int marketValueLeague; // "mvgl"
     private String playerId; // "i"
@@ -22,10 +22,10 @@ public class Player {
     private double percentageChangeLastDay;
     private String playerImageUrl; // "pim"
 
-    public Player(int marketValueLeague, String playerId, String playerName, int loanStatus, int lastTransferStatus,
-                  int status, int matchdayStatus, int positionInRank, long marketValue, int marketValueType,
-                  int points, int averagePoints, boolean isInTeamOfTheMoment, int offensiveContribution,
-                  String teamId, long marketValueChangeInLastWeek, long marketValueChangeInLastDay, String playerImageUrl) {
+    public PlayerOnSquad(int marketValueLeague, String playerId, String playerName, int loanStatus, int lastTransferStatus,
+                         int status, int matchdayStatus, int positionInRank, long marketValue, int marketValueType,
+                         int points, int averagePoints, boolean isInTeamOfTheMoment, int offensiveContribution,
+                         String teamId, long marketValueChangeInLastWeek, long marketValueChangeInLastDay, String playerImageUrl) {
         this.marketValueLeague = marketValueLeague;
         this.playerId = playerId;
         this.playerName = playerName;
@@ -128,7 +128,7 @@ public class Player {
 
     @Override
     public String toString() {
-        return "Player{" +
+        return "PlayerOnSquad{" +
                 "marketValueLeague=" + marketValueLeague +
                 ", playerId='" + playerId + '\'' +
                 ", playerName='" + playerName + '\'' +

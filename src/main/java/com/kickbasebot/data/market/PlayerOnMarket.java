@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-public class PlayerFromMarket {
+public class PlayerOnMarket {
 
     private String id;                  // "i"
     private String firstName;           // "fn"
@@ -27,10 +27,10 @@ public class PlayerFromMarket {
     private String playerImage;         // "pim"
     private List<Offer> offers;         // "ofs"
 
-    public PlayerFromMarket(String id, String firstName, String lastName, String teamId, int position, int status,
-                            int marketValueTrend, long marketValue, int totalPoints, int averagePoints, int offersCount,
-                            int remainingSeconds, long price, long userOfferPrice, String userOfferId, boolean isNew,
-                            boolean isPositionLocked, String date, String playerImage, List<Offer> offers) {
+    public PlayerOnMarket(String id, String firstName, String lastName, String teamId, int position, int status,
+                          int marketValueTrend, long marketValue, int totalPoints, int averagePoints, int offersCount,
+                          int remainingSeconds, long price, long userOfferPrice, String userOfferId, boolean isNew,
+                          boolean isPositionLocked, String date, String playerImage, List<Offer> offers) {
 
         this.id = id;
         this.firstName = firstName;
