@@ -1,5 +1,7 @@
 package com.kickbasebot;
 
+import com.kickbasebot.service.KickbaseBotImpl;
+
 import java.io.Console;
 import java.util.Scanner;
 
@@ -11,7 +13,7 @@ public class Main {
         String password = "";
 
         if (console != null) {
-            System.out.println("\nWelcome to the Kickbase Bot! In order to proceed, please enter your Kickbase credentials. \nWe will not store your credentials and the password input will be hidden.");
+            System.out.println("\nWelcome to the Kickbase Bot! In order to proceed, please enter your Kickbase credentials. \nWe will not store your credentials and your password input will be hidden.\n");
             System.out.print("E-Mail: ");
             email = console.readLine();
             System.out.print("Password: ");
@@ -48,6 +50,17 @@ public class Main {
             response = scanner.nextLine().trim().toLowerCase();
             if (response.equals("yes")) {
                 bot.getPlayers();
+            }
+
+            while (true) {
+                System.out.print("\nWould you like to sell a player? (yes/no): ");
+                response = scanner.nextLine().trim().toLowerCase();
+                if (!response.equals("yes")) {
+                    break;
+                }
+                System.out.print("\nPlayerID of the player you want to sell: ");
+                String playerId = scanner.nextLine().trim();
+                bot.sellPlayer(playerId);
             }
 
             bot.getPlayersFromMarket();

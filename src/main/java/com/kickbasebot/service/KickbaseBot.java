@@ -1,4 +1,4 @@
-package com.kickbasebot;
+package com.kickbasebot.service;
 
 import com.kickbasebot.data.managers.Profile;
 import com.kickbasebot.data.market.League;
@@ -61,6 +61,14 @@ public interface KickbaseBot {
      * @throws InterruptedException If the process is interrupted.
      */
     List<PlayerOnSquad> getPlayers() throws IOException, InterruptedException;
+
+    /**
+     * Sells a player from the user's squad.
+     * @param playerId The ID of the player to be sold.
+     * @throws IOException If there is an issue selling the player.
+     * @throws InterruptedException If the process is interrupted.
+     */
+    void sellPlayer(String playerId) throws IOException, InterruptedException;
 
     /**
      * Retrieves a list of players available on the transfer market.

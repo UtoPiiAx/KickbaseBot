@@ -1,4 +1,4 @@
-package com.kickbasebot;
+package com.kickbasebot.gui;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.kickbasebot.data.Ranking;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class PrintUtils {
+public class PrintService {
 
     private static final NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.GERMANY);
 
@@ -49,6 +49,15 @@ public class PrintUtils {
         System.out.println("----------------------------------------------------------------------------------------------------------------");
     }
 
+    public void printPlayerSold(PlayerOnSquad player, long salePrice, long profit) {
+        System.out.println("\n------------------------------");
+        System.out.println("Player Sold: " + player.getPlayerName());
+        System.out.println("Player ID: " + player.getPlayerId());
+        System.out.println("Sale Price: " + formatNumber(salePrice));
+        System.out.println("Profit: " + formatNumber(profit));
+        System.out.println("------------------------------\n");
+    }
+
     public void printBids(PlayerOnMarket player, double bidAmount, double profit) {
         System.out.printf("%nBid placed for %s %s in the amount of %s.%nCurrent market value: %s%nPotential profit if sold immediately: +%s%n%n",
                 player.getFirstName(), player.getLastName(), formatNumber(bidAmount),
@@ -56,7 +65,7 @@ public class PrintUtils {
     }
 
     public void printPlayerResults(List<PlayerOnSquad> sortedPlayerOnSquad) {
-        System.out.println("\nA total of " + sortedPlayerOnSquad.size() + " playerOnSquads were found in your squad:");
+        System.out.println("\nA total of " + sortedPlayerOnSquad.size() + " players were found in your squad:");
 
         for (PlayerOnSquad playerOnSquad : sortedPlayerOnSquad) {
             String position = getPositionName(playerOnSquad.getPositionInRank());

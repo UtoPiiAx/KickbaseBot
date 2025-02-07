@@ -1,4 +1,4 @@
-package com.kickbasebot;
+package com.kickbasebot.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +18,9 @@ public class HttpClientHelper {
 
     protected String token;
 
+    /**
+     * ------------------------------------------POST REQUEST--------------------------------------------------------
+     */
     protected JsonNode sendPostRequest(String url, Object requestBody) throws IOException, InterruptedException {
         HttpRequest request = buildPostRequest(url, requestBody);
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -33,6 +36,9 @@ public class HttpClientHelper {
                 .build();
     }
 
+    /**
+     * ------------------------------------------GET REQUEST--------------------------------------------------------
+     */
     protected JsonNode sendGetRequest(String url) throws IOException, InterruptedException {
         HttpRequest request = buildGetRequest(url);
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -48,10 +54,32 @@ public class HttpClientHelper {
                 .build();
     }
 
+    /**
+     * ------------------------------------------DELETE REQUEST--------------------------------------------------------
+     */
+    protected JsonNode sendDeleteRequest(String url) throws IOException, InterruptedException {
+        HttpRequest request = buildDeleteRequest(url);
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return handleResponse(response);
+    }
+
+    protected HttpRequest buildDeleteRequest(String url) {
+        return HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + token)
+                .DELETE()
+                .build();
+    }
+
+    /**
+     * ------------------------------------------RESPONSE--------------------------------------------------------
+     */
     protected JsonNode handleResponse(HttpResponse<String> response) throws IOException {
         if (response.statusCode() == 200) {
             return objectMapper.readTree(response.body());
         }
         throw new RuntimeException("Status Code: " + response.statusCode());
     }
+
 }
