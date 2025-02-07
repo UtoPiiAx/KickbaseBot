@@ -141,11 +141,8 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
             String confirmation = scanner.nextLine().trim().toLowerCase();
 
             if ("yes".equals(confirmation)) {
-                long salePrice = player.getMarketValue();
-                long profit = salePrice - player.getMarketValueLeague();
-                sendDeleteRequest(sellUrl);
-
-                printService.printPlayerSold(player, salePrice, profit);
+                sendPostRequest(sellUrl, null);
+                printService.printPlayerSold(player, player.getMarketValue(), player.getMarketValueLeague());
             } else {
                 System.out.println("\nPlayer " + player.getPlayerName() + " (ID: " + playerId + ") was not sold.\n");
             }

@@ -51,7 +51,7 @@ public class PrintService {
 
     public void printPlayerSold(PlayerOnSquad player, long salePrice, long profit) {
         System.out.println("\n------------------------------");
-        System.out.println("Player Sold: " + player.getPlayerName());
+        System.out.println("Player sold: " + player.getPlayerName());
         System.out.println("Player ID: " + player.getPlayerId());
         System.out.println("Sale Price: " + formatNumber(salePrice));
         System.out.println("Profit: " + formatNumber(profit));
