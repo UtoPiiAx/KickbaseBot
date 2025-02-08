@@ -1,6 +1,5 @@
 package com.kickbasebot.gui;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.kickbasebot.data.Ranking;
 import com.kickbasebot.data.managers.Profile;
 import com.kickbasebot.data.market.PlayerOnMarket;
@@ -8,7 +7,6 @@ import com.kickbasebot.data.me.PlayerOnSquad;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -16,6 +14,11 @@ import java.util.stream.Collectors;
 public class PrintService {
 
     private static final NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.GERMANY);
+    private static final int LABEL_WIDTH = 35;
+
+    private void printAligned(String label, Object value) {
+        System.out.printf("%-" + LABEL_WIDTH + "s %s%n", label, value);
+    }
 
     public void printRanking(Ranking ranking, List<Ranking.User> users) {
         System.out.println("\nLeaderboard:");
@@ -35,10 +38,10 @@ public class PrintService {
 
         System.out.println("\nProfile successfully loaded for: " + profile.getUsername());
         System.out.println("----------------------------------------------------------------------------------------------------------------");
-        System.out.printf("| %-12s | %-16s | %-20s | %-10s | %-12s | %-10s | %-10s |\n",
+        System.out.printf("| %-12s | %-16s | %-20s | %-10s | %-12s | %-10s | %-10s |%n",
                 "Wins", "Total Pts", "Last 5 Total Pts", "Ø Pts", "Team Value", "Profit", "Transfers");
         System.out.println("----------------------------------------------------------------------------------------------------------------");
-        System.out.printf("| %-12d | %-16d | %-20s | %-10d | %-12s | %-10s | %-10d |\n",
+        System.out.printf("| %-12d | %-16d | %-20s | %-10d | %-12s | %-10s | %-10d |%n",
                 profile.getMatchdayWins(),
                 profile.getTotalPoints(),
                 lastMatchdayPoints,
@@ -68,33 +71,19 @@ public class PrintService {
         System.out.println("\nA total of " + sortedPlayerOnSquad.size() + " players were found in your squad:");
 
         for (PlayerOnSquad playerOnSquad : sortedPlayerOnSquad) {
-            String position = getPositionName(playerOnSquad.getPositionInRank());
-
-            String formattedMarketValue = numberFormat.format(playerOnSquad.getMarketValue());
-            String formattedChangeLastWeek = formatMarketValueChange(playerOnSquad.getMarketValueChangeInLastWeek(), playerOnSquad.getMarketValueType());
-            String formattedChangeLastDay = formatMarketValueChange(playerOnSquad.getMarketValueChangeInLastDay(), playerOnSquad.getMarketValueType());
-            String percentageChangeLastDay = calculateMarketValueChangePercentage(playerOnSquad.getMarketValue(), playerOnSquad.getMarketValueChangeInLastDay());
-
             System.out.println("\n-----------------------------------------------------");
-            System.out.println("ID: " + playerOnSquad.getPlayerId());
-            System.out.println("PlayerOnSquad: " + playerOnSquad.getPlayerName());
-            System.out.println("Position: " + position);
-            System.out.println("Market Value: " + formattedMarketValue + " EUR");
-            System.out.println("Total Points: " + playerOnSquad.getPoints());
-            System.out.println("Average Points: " + playerOnSquad.getAveragePoints());
-            System.out.println("Market Value Change (Last Week): " + formattedChangeLastWeek);
-            System.out.println("Market Value Change (Last Day): " + formattedChangeLastDay);
-            System.out.println("Percentage Change (Last Day): " + percentageChangeLastDay);
+            printAligned("ID: ", playerOnSquad.getPlayerId());
+            printAligned("Player: ", playerOnSquad.getPlayerName());
+            printAligned("Position: ", getPositionName(playerOnSquad.getPositionInRank()));
+            printAligned("Total Points: ", playerOnSquad.getPoints());
+            printAligned("Average Points: ", playerOnSquad.getAveragePoints());
+            printAligned("Market Value: ", numberFormat.format(playerOnSquad.getMarketValue()) + " EUR");
+            printAligned("Profit since Purchase: ",numberFormat.format(playerOnSquad.getMarketValueLeague()) + " EUR");
+            printAligned("Market Value Change (Last Week): ", formatMarketValueChange(playerOnSquad.getMarketValueChangeInLastWeek(), playerOnSquad.getMarketValueType()));
+            printAligned("Market Value Change (Last Day): ", formatMarketValueChange(playerOnSquad.getMarketValueChangeInLastDay(), playerOnSquad.getMarketValueType()));
+            printAligned("Percentage Change (Last Day): ",calculateMarketValueChangePercentage(playerOnSquad.getMarketValue(), playerOnSquad.getMarketValueChangeInLastDay()));
             System.out.println("-----------------------------------------------------");
         }
-    }
-
-    public List<Integer> parseLeaguePoints(JsonNode lpNode) {
-        List<Integer> leaguePoints = new ArrayList<>();
-        if (lpNode != null && lpNode.isArray()) {
-            lpNode.forEach(node -> leaguePoints.add(node.asInt()));
-        }
-        return leaguePoints;
     }
 
     public String getPositionName(int position) {
@@ -108,15 +97,12 @@ public class PrintService {
     }
 
     public String formatMarketValueChange(long change, int mvt) {
-        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.GERMANY);
-        String formattedChange = numberFormat.format(change);
-
         if (mvt == 1) {
-            return "+ " + formattedChange + " EUR";
+            return "+ " + numberFormat.format(change) + " EUR";
         } else if (mvt == 0) {
-            return "- " + formattedChange + " EUR";
+            return "- " + numberFormat.format(change) + " EUR";
         }
-        return formattedChange + " EUR";
+        return numberFormat.format(change) + " EUR";
     }
 
     public String calculateMarketValueChangePercentage(long currentMarketValue, long marketValueChange) {

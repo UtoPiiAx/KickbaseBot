@@ -19,14 +19,13 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
     private static final double BID_PERCENTAGE = 0.97;
 
     private static KickbaseBotImpl instance;
-    private PrintService printService;
-    private DataCreationService dataCreationService;
+    private final PrintService printService;
+    private final DataCreationService dataCreationService;
 
     private String userId;
     private Profile profile;
     private League league;
     private List<PlayerOnSquad> playerOnSquad;
-    private List<PlayerOnSquad> sortedPlayerOnSquad;
     private List<PlayerOnMarket> playersOnTM;
 
     private KickbaseBotImpl() {
@@ -88,7 +87,7 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
             List<Ranking.User> users = new ArrayList<>();
 
             for (JsonNode userData : dataNode) {
-                List<Integer> leaguePoints = printService.parseLeaguePoints(userData.get("lp"));
+                List<Integer> leaguePoints = parseLeaguePoints(userData.get("lp"));
                 Ranking.User user = dataCreationService.createRankingUser(userData, leaguePoints);
                 users.add(user);
             }
@@ -100,6 +99,14 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
             return ranking;
         }
         throw new IllegalStateException("No ranking data found.");
+    }
+
+    private List<Integer> parseLeaguePoints(JsonNode lpNode) {
+        List<Integer> leaguePoints = new ArrayList<>();
+        if (lpNode != null && lpNode.isArray()) {
+            lpNode.forEach(node -> leaguePoints.add(node.asInt()));
+        }
+        return leaguePoints;
     }
 
     @Override
@@ -209,7 +216,7 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
         JsonNode playerArray = playersData.get("it");
 
         this.playerOnSquad = new ArrayList<>();
-        this.sortedPlayerOnSquad = new ArrayList<>();
+        List<PlayerOnSquad> sortedPlayerOnSquad = new ArrayList<>();
 
         if (playerArray != null && playerArray.isArray()) {
             for (JsonNode playerData : playerArray) {

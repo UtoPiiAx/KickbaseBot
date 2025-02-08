@@ -9,8 +9,8 @@ public class Main {
 
     public static void main(String[] args) {
         Console console = System.console();
-        String email = "";
-        String password = "";
+        String email;
+        String password;
 
         if (console != null) {
             System.out.println("\nWelcome to the Kickbase Bot! In order to proceed, please enter your Kickbase credentials. \nWe will not store your credentials and your password input will be hidden.\n");
