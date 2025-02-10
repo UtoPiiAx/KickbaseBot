@@ -36,29 +36,15 @@ public class Main {
             bot.login(email, password);
             bot.getLeague();
             bot.getBudget();
+            bot.fetchAndPopulateRanking();
+            bot.getProfile();
+            bot.getPlayers();
+
             Scanner scanner = new Scanner(System.in);
-
-            System.out.print("\nWould you like to see your ranking? (yes/no): ");
-            String response = scanner.nextLine().trim().toLowerCase();
-            if (response.equals("yes")) {
-                bot.fetchAndPopulateRanking();
-            }
-
-            System.out.print("\nWould you like to see your profile stats? (yes/no): ");
-            response = scanner.nextLine().trim().toLowerCase();
-            if (response.equals("yes")) {
-                bot.getProfile();
-            }
-
-            System.out.print("\nWould you like to see your own players? (yes/no): ");
-            response = scanner.nextLine().trim().toLowerCase();
-            if (response.equals("yes")) {
-                bot.getPlayers();
-            }
 
             while (true) {
                 System.out.print("\nWould you like to sell a player? (yes/no): ");
-                response = scanner.nextLine().trim().toLowerCase();
+                String response = scanner.nextLine().trim().toLowerCase();
                 if (!response.equals("yes")) {
                     break;
                 }
@@ -70,7 +56,7 @@ public class Main {
             bot.getPlayersFromMarket();
 
             System.out.print("Would you like to bid on the players on the market who expire next? (yes/no): ");
-            response = scanner.nextLine().trim().toLowerCase();
+            String response = scanner.nextLine().trim().toLowerCase();
             if (response.equals("yes")) {
                 bot.placeBids();
                 System.out.println("\nBids have been placed.");
