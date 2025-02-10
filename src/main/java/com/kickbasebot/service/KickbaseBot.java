@@ -3,6 +3,7 @@ package com.kickbasebot.service;
 import com.kickbasebot.data.managers.Profile;
 import com.kickbasebot.data.market.League;
 import com.kickbasebot.data.market.PlayerOnMarket;
+import com.kickbasebot.data.me.Budget;
 import com.kickbasebot.data.me.PlayerOnSquad;
 import com.kickbasebot.data.Ranking;
 
@@ -34,6 +35,15 @@ public interface KickbaseBot {
      * @throws InterruptedException If the process is interrupted.
      */
     League getLeague() throws IOException, InterruptedException;
+
+    /**
+     * Retrieves the user's budget information.
+     *
+     * @return The budget as {@link Budget}.
+     * @throws IOException If there is an issue retrieving the budget.
+     * @throws InterruptedException If the process is interrupted.
+     */
+    public Budget getBudget() throws IOException, InterruptedException;
 
     /**
      * Retrieves the league ranking.

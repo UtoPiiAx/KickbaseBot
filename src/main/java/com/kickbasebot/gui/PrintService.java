@@ -3,6 +3,7 @@ package com.kickbasebot.gui;
 import com.kickbasebot.data.Ranking;
 import com.kickbasebot.data.managers.Profile;
 import com.kickbasebot.data.market.PlayerOnMarket;
+import com.kickbasebot.data.me.Budget;
 import com.kickbasebot.data.me.PlayerOnSquad;
 
 import java.text.DecimalFormat;
@@ -18,6 +19,21 @@ public class PrintService {
 
     private void printAligned(String label, Object value) {
         System.out.printf("%-" + LABEL_WIDTH + "s %s%n", label, value);
+    }
+
+    public void printLogIn(String userId) {
+        System.out.println("\nSuccessfully logged in with user ID: " + userId + "\n");
+    }
+
+    public void printLeague(String leagueName, String id) {
+        System.out.println("\nLeague successfully retrieved: " + leagueName + " (ID: " + id + ") \n");
+    }
+
+    public void printBudget(Budget budget) {
+        System.out.println("\nBudget successfully retrieved:");
+        System.out.println("Budget After All Bids & Sales: " + numberFormat.format(budget.getProjectedBudgetAfterSales()) + " EUR");
+        System.out.println("Budget After All Bids: " + numberFormat.format(budget.getProjectedBudgetAfterAllActions()) + " EUR");
+        System.out.println("Current Budget: " + numberFormat.format(budget.getCurrentBudget()) + " EUR");
     }
 
     public void printRanking(Ranking ranking, List<Ranking.User> users) {
@@ -37,11 +53,11 @@ public class PrintService {
                 .collect(Collectors.joining("|"));
 
         System.out.println("\nProfile successfully loaded for: " + profile.getUsername());
-        System.out.println("----------------------------------------------------------------------------------------------------------------");
-        System.out.printf("| %-12s | %-16s | %-20s | %-10s | %-12s | %-10s | %-10s |%n",
+        System.out.println("--------------------------------------------------------------------------------------------------------------------");
+        System.out.printf("| %-12s | %-16s | %-24s | %-10s | %-12s | %-10s | %-10s |%n",
                 "Wins", "Total Pts", "Last 5 Total Pts", "Ø Pts", "Team Value", "Profit", "Transfers");
-        System.out.println("----------------------------------------------------------------------------------------------------------------");
-        System.out.printf("| %-12d | %-16d | %-20s | %-10d | %-12s | %-10s | %-10d |%n",
+        System.out.println("--------------------------------------------------------------------------------------------------------------------");
+        System.out.printf("| %-12d | %-16d | %-24s | %-10d | %-12s | %-10s | %-10d |%n",
                 profile.getMatchdayWins(),
                 profile.getTotalPoints(),
                 lastMatchdayPoints,
@@ -49,7 +65,7 @@ public class PrintService {
                 formattedTeamValue,
                 formattedProfit,
                 profile.getTransfers());
-        System.out.println("----------------------------------------------------------------------------------------------------------------");
+        System.out.println("--------------------------------------------------------------------------------------------------------------------");
     }
 
     public void printPlayerSold(PlayerOnSquad player, long salePrice, long profit) {
@@ -67,7 +83,7 @@ public class PrintService {
                 formatNumber(player.getMarketValue()), formatNumber(profit));
     }
 
-    public void printPlayerResults(List<PlayerOnSquad> sortedPlayerOnSquad) {
+    public void printPlayerResults(List<PlayerOnSquad> sortedPlayerOnSquad, int totalProfitOfPlayers, Profile profile, Budget budget) {
         System.out.println("\nA total of " + sortedPlayerOnSquad.size() + " players were found in your squad:");
 
         for (PlayerOnSquad playerOnSquad : sortedPlayerOnSquad) {
@@ -84,6 +100,10 @@ public class PrintService {
             printAligned("Percentage Change (Last Day): ",calculateMarketValueChangePercentage(playerOnSquad.getMarketValue(), playerOnSquad.getMarketValueChangeInLastDay()));
             System.out.println("-----------------------------------------------------");
         }
+
+        printAligned("\nProfit of all players in squad: " , formatNumber(totalProfitOfPlayers) + " EUR\n");
+        printAligned("Total profit (value above + realized profit): ", formatNumber(totalProfitOfPlayers + profile.getProfit()) + " EUR\n");
+        printAligned("Current squad value (after budget): ", formatNumber(profile.getTeamValue() + budget.getCurrentBudget()) + " EUR\n");
     }
 
     public String getPositionName(int position) {

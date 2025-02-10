@@ -7,6 +7,7 @@ import com.kickbasebot.data.managers.Profile;
 import com.kickbasebot.data.market.League;
 import com.kickbasebot.data.market.Offer;
 import com.kickbasebot.data.market.PlayerOnMarket;
+import com.kickbasebot.data.me.Budget;
 import com.kickbasebot.data.me.PlayerOnSquad;
 import com.kickbasebot.gui.PrintService;
 
@@ -23,14 +24,16 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
     private final DataCreationService dataCreationService;
 
     private String userId;
-    private Profile profile;
     private League league;
-    private List<PlayerOnSquad> playerOnSquad;
+    private Budget budget;
+    private Ranking ranking;
+    private Profile profile;
+    private List<PlayerOnSquad> playersOnSquad;
     private List<PlayerOnMarket> playersOnTM;
 
     private KickbaseBotImpl() {
-        this.printService = new PrintService();
         this.dataCreationService = new DataCreationService();
+        this.printService = new PrintService();
     }
 
     public static synchronized KickbaseBotImpl getInstance() {
@@ -55,8 +58,7 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
 
         JsonNode userNode = responseJson.get("u");
         this.userId = userNode.get("id").asText();
-
-        System.out.println("\nLogin successful! User ID: " + userId + "\n");
+        printService.printLogIn(userId);
         return token;
     }
 
@@ -70,10 +72,24 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
         if (leagueArray != null) {
             JsonNode leagueData = leagueArray.get(0);
             this.league = dataCreationService.createLeague(leagueData);
-            System.out.println("\nLeague successfully retrieved: " + league.getName() + " (ID: " + league.getId() + ") \n");
+            printService.printLeague(league.getName(), league.getId());
             return league;
         }
         throw new IllegalStateException("No leagues found.");
+    }
+
+    @Override
+    public Budget getBudget() throws IOException, InterruptedException {
+        String budgetUrl = BASE_URL_LEAGUES + league.getId() + "/me/budget";
+
+        JsonNode budgetData = sendGetRequest(budgetUrl);
+
+        if (budgetData != null) {
+            this.budget = dataCreationService.createBudget(budgetData);
+            printService.printBudget(budget);
+            return budget;
+        }
+        throw new IllegalStateException("No budget data found.");
     }
 
     @Override
@@ -94,7 +110,7 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
 
             users.sort(Comparator.comparingInt(Ranking.User::getScore).reversed());
 
-            Ranking ranking = dataCreationService.createRanking(rankingData, users);
+            this.ranking = dataCreationService.createRanking(rankingData, users);
             printService.printRanking(ranking, users);
             return ranking;
         }
@@ -124,7 +140,6 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
             }
 
             this.profile = dataCreationService.createProfile(profileData, pastMatchdayPoints);
-
             printService.printProfile(profile, pastMatchdayPoints);
             return profile;
         }
@@ -135,7 +150,7 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
     public void sellPlayer(String playerId) throws IOException, InterruptedException {
         String sellUrl = BASE_URL_LEAGUES + league.getId() + "/market/" + playerId + "/sell";
 
-        Optional<PlayerOnSquad> playerToSell = playerOnSquad.stream()
+        Optional<PlayerOnSquad> playerToSell = playersOnSquad.stream()
                 .filter(player -> player.getPlayerId().equals(playerId))
                 .findFirst();
 
@@ -157,7 +172,6 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
             System.out.println("\nPlayer with ID " + playerId + " not found in your squad.\n");
         }
     }
-
 
     @Override
     public List<PlayerOnMarket> getPlayersFromMarket() throws IOException, InterruptedException {
@@ -215,23 +229,26 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
         JsonNode playersData = sendGetRequest(playersUrl);
         JsonNode playerArray = playersData.get("it");
 
-        this.playerOnSquad = new ArrayList<>();
+        this.playersOnSquad = new ArrayList<>();
         List<PlayerOnSquad> sortedPlayerOnSquad = new ArrayList<>();
+        int totalProfitOfPlayers = 0;
+        String percentageChangeLastDay;
 
         if (playerArray != null && playerArray.isArray()) {
             for (JsonNode playerData : playerArray) {
                 PlayerOnSquad player = dataCreationService.createPlayerOnSquad(playerData);
-                String percentageChangeLastDay = printService.calculateMarketValueChangePercentage(player.getMarketValue(), player.getMarketValueChangeInLastDay());
+                totalProfitOfPlayers += player.getMarketValueLeague();
+                percentageChangeLastDay = printService.calculateMarketValueChangePercentage(player.getMarketValue(), player.getMarketValueChangeInLastDay());
                 player.setPercentageChangeLastDay(Double.parseDouble(percentageChangeLastDay.replace("%", "")));
-                playerOnSquad.add(player);
+                playersOnSquad.add(player);
             }
 
-            sortedPlayerOnSquad = playerOnSquad.stream()
+            sortedPlayerOnSquad = playersOnSquad.stream()
                     .sorted((p1, p2) -> Double.compare(p2.getPercentageChangeLastDay(), p1.getPercentageChangeLastDay()))
                     .collect(Collectors.toList());
         }
 
-        printService.printPlayerResults(sortedPlayerOnSquad);
+        printService.printPlayerResults(sortedPlayerOnSquad, totalProfitOfPlayers, profile, budget);
         return sortedPlayerOnSquad;
     }
 

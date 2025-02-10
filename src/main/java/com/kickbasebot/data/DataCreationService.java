@@ -5,11 +5,21 @@ import com.kickbasebot.data.managers.Profile;
 import com.kickbasebot.data.market.League;
 import com.kickbasebot.data.market.Offer;
 import com.kickbasebot.data.market.PlayerOnMarket;
+import com.kickbasebot.data.me.Budget;
 import com.kickbasebot.data.me.PlayerOnSquad;
 
 import java.util.List;
 
 public class DataCreationService {
+
+    public Budget createBudget(JsonNode budgetData) {
+        return new Budget(
+                budgetData.get("pbaa").asDouble(), // projectedBudgetAfterAllActions
+                budgetData.get("pbas").asDouble(), // projectedBudgetAfterSales
+                budgetData.get("b").asDouble(),    // currentBudget
+                budgetData.get("bs").asInt()       // budgetStatus
+        );
+    }
 
     public Ranking.User createRankingUser(JsonNode userData, List<Integer> leaguePoints) {
         return new Ranking.User(

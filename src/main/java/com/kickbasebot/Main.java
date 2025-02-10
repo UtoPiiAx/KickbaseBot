@@ -32,6 +32,7 @@ public class Main {
         try {
             bot.login(email, password);
             bot.getLeague();
+            bot.getBudget();
             Scanner scanner = new Scanner(System.in);
 
             System.out.print("\nWould you like to see your ranking? (yes/no): ");
