@@ -103,7 +103,11 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
             List<Ranking.User> users = new ArrayList<>();
 
             for (JsonNode userData : dataNode) {
-                List<Integer> leaguePoints = parseLeaguePoints(userData.get("lp"));
+                JsonNode lpNode = userData.get("lp");
+                List<Integer> leaguePoints = new ArrayList<>();
+                if (lpNode != null && lpNode.isArray()) {
+                    lpNode.forEach(node -> leaguePoints.add(node.asInt()));
+                }
                 Ranking.User user = dataCreationService.createRankingUser(userData, leaguePoints);
                 users.add(user);
             }
@@ -115,14 +119,6 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
             return ranking;
         }
         throw new IllegalStateException("No ranking data found.");
-    }
-
-    private List<Integer> parseLeaguePoints(JsonNode lpNode) {
-        List<Integer> leaguePoints = new ArrayList<>();
-        if (lpNode != null && lpNode.isArray()) {
-            lpNode.forEach(node -> leaguePoints.add(node.asInt()));
-        }
-        return leaguePoints;
     }
 
     @Override
@@ -208,16 +204,25 @@ public class KickbaseBotImpl extends HttpClientHelper implements KickbaseBot {
     public void placeBids() throws IOException, InterruptedException {
         playersOnTM.sort(Comparator.comparingInt(PlayerOnMarket::getRemainingSeconds));
 
+        double realTeamValue = profile.getTeamValue() + budget.getCurrentBudget();
+        double maxAllowedDeficit = -(realTeamValue * (1.0 / 3.1));
+        double newBudgetAfterBid = budget.getCurrentBudget();
+
         for (PlayerOnMarket playerOnMarketToBid : playersOnTM) {
             double bidAmount = playerOnMarketToBid.getMarketValue() * BID_PERCENTAGE;
-            double profit = playerOnMarketToBid.getMarketValue() - bidAmount;
+
+            if (newBudgetAfterBid - bidAmount <= maxAllowedDeficit) {
+                System.out.println("Skipping bid for player " + playerOnMarketToBid.getId() +
+                        " as it exceeds the allowed deficit limit.");
+                continue;
+            }
 
             String bidUrl = BASE_URL + "/leagues/" + league.getId() + "/market/" + playerOnMarketToBid.getId() + "/offers/";
-
             Map<String, Object> requestBody = Map.of("price", bidAmount);
-
             sendPostRequest(bidUrl, requestBody);
 
+            double profit = playerOnMarketToBid.getMarketValue() - bidAmount;
+            newBudgetAfterBid -= bidAmount;
             printService.printBids(playerOnMarketToBid, bidAmount, profit);
         }
     }

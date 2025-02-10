@@ -13,7 +13,10 @@ public class Main {
         String password;
 
         if (console != null) {
-            System.out.println("\nWelcome to the Kickbase Bot! In order to proceed, please enter your Kickbase credentials. \nWe will not store your credentials and your password input will be hidden.\n");
+            System.out.println("\nWelcome to the Kickbase Bot!\n" +
+                    "To continue, please enter your Kickbase credentials. \n" +
+                    "Your credentials will not be stored, and your password input will be hidden for security reasons.\n" +
+                    "This bot uses standard Kickbase API calls to provide insights and manage your team efficiently.\n");
             System.out.print("E-Mail: ");
             email = console.readLine();
             System.out.print("Password: ");

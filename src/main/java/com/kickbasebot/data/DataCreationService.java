@@ -14,10 +14,10 @@ public class DataCreationService {
 
     public Budget createBudget(JsonNode budgetData) {
         return new Budget(
-                budgetData.get("pbaa").asDouble(), // projectedBudgetAfterAllActions
-                budgetData.get("pbas").asDouble(), // projectedBudgetAfterSales
-                budgetData.get("b").asDouble(),    // currentBudget
-                budgetData.get("bs").asInt()       // budgetStatus
+                budgetData.has("pbaa") ? budgetData.get("pbaa").asDouble() : 0.0, // projectedBudgetAfterAllActions
+                budgetData.has("pbas") ? budgetData.get("pbas").asDouble() : 0.0, // projectedBudgetAfterSales
+                budgetData.has("b") ? budgetData.get("b").asDouble() : 0.0,       // currentBudget
+                budgetData.has("bs") ? budgetData.get("bs").asInt() : 0           // budgetStatus
         );
     }
 

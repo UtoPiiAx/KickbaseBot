@@ -32,7 +32,7 @@ public class PrintService {
     public void printBudget(Budget budget) {
         System.out.println("\nBudget successfully retrieved:");
         System.out.println("Budget After All Bids & Sales: " + numberFormat.format(budget.getProjectedBudgetAfterSales()) + " EUR");
-        System.out.println("Budget After All Bids: " + numberFormat.format(budget.getProjectedBudgetAfterAllActions()) + " EUR");
+        System.out.println("Budget of All Bids: " + numberFormat.format(budget.getProjectedBudgetAfterAllActions()) + " EUR");
         System.out.println("Current Budget: " + numberFormat.format(budget.getCurrentBudget()) + " EUR");
     }
 

@@ -19,7 +19,7 @@ public class HttpClientHelper {
     protected String token;
 
     /**
-     * ------------------------------------------POST REQUEST--------------------------------------------------------
+     * -------------------------------------------POST REQUEST---------------------------------------------------------
      */
     protected JsonNode sendPostRequest(String url, Object requestBody) throws IOException, InterruptedException {
         HttpRequest request = buildPostRequest(url, requestBody);
@@ -37,7 +37,7 @@ public class HttpClientHelper {
     }
 
     /**
-     * ------------------------------------------GET REQUEST--------------------------------------------------------
+     * ------------------------------------------GET REQUEST-----------------------------------------------------------
      */
     protected JsonNode sendGetRequest(String url) throws IOException, InterruptedException {
         HttpRequest request = buildGetRequest(url);
@@ -73,13 +73,13 @@ public class HttpClientHelper {
     }
 
     /**
-     * ------------------------------------------RESPONSE--------------------------------------------------------
+     * -----------------------------------------------RESPONSE---------------------------------------------------------
      */
     protected JsonNode handleResponse(HttpResponse<String> response) throws IOException {
         if (response.statusCode() == 200) {
             return objectMapper.readTree(response.body());
         }
-        throw new RuntimeException("Status Code: " + response.statusCode());
+        throw new RuntimeException("Status Code: " + response.statusCode() + " - " + response.body());
     }
 
 }
